@@ -2,9 +2,18 @@
 
 This module enables the creation of a simple donation block
 which you can place in layouts on your Backdrop site. It is a very simple
-implementation using Stripe's "Checkout" functionality and does not create
-local database tables for storing or browsing donation history. You can
-use your Stripe account to view and manage that. 
+implementation using Stripe's [Checkout](https://stripe.com/docs/checkout) 
+functionality and does not create local database tables for storing or 
+browsing donation history. You can use your Stripe account to view and 
+manage that. 
+
+Even though Stripe handles all the payment info on their servers, you 
+should still ensure your site is running on SSL. ("All submissions of payment 
+info using Checkout are made via a secure HTTPS connection. However, in order 
+to protect yourself from certain forms of man-in-the-middle attacks, you must 
+serve the page containing the payment form over HTTPS as well. In short, the 
+address of the page containing Checkout must start with https:// rather than 
+just http://.")
 
 Features may be expanded in the future.
 
