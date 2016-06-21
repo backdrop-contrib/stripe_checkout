@@ -49,6 +49,7 @@ complete text.
 ##Current Maintainers
 
 - [Laryn Kragt Bakker](https://github.com/laryn) - [CEDC.org](https://cedc.org)
+- Co-maintainers would be welcome!
 
 ##Credits
 
