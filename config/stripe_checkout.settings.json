@@ -1,0 +1,20 @@
+{
+    "_config_name": "stripe_checkout.settings",
+    "stripe_checkout-image": 0,
+    "stripe_checkout-currency": "USD",
+    "stripe_checkout-zip": true,
+    "stripe_checkout-billing-addr": false,
+    "stripe_checkout-shipping-addr": false,
+    "stripe_checkout-prefill-email": false,
+    "stripe_checkout-outer-button": "Donate now",
+    "stripe_checkout-inner-button": "Donate {{amount}}",
+    "stripe_checkout-enabled": "0",
+    "stripe_checkout-mode": "0",
+    "stripe_checkout-live-publishable-key": "",
+    "stripe_checkout-test-publishable-key": "",
+    "stripe_checkout-name": "",
+    "stripe_checkout-description": "",
+    "stripe_checkout-amount": 2000,
+    "stripe_checkout-live-secret-key": "",
+    "stripe_checkout-test-secret-key": ""
+}

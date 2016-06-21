@@ -1,0 +1,178 @@
+<?php
+/**
+ * @file
+ * Enables the creation of a simple Stripe Checkout block.
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function stripe_checkout_block_info() {
+  $blocks = array();
+
+  $module_is_enabled = config_get('stripe_checkout.settings','stripe_checkout-enabled');
+
+  if ($module_is_enabled) {
+    $blocks['stripe_checkout_donate'] = array(
+      'info' => t('Stripe Checkout'),
+      'description' => t('Stripe Checkout Donation Form.'),
+      'cache' => BACKDROP_CACHE_GLOBAL,
+    );
+  }
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function stripe_checkout_block_view($delta = '', $settings = array(), $contexts = array()) {
+  global $user;
+  $config = config('stripe_checkout.settings');
+  $currpage = current_path();
+  
+  if (module_exists('libraries') && $config->get('stripe_checkout-enabled') && $currpage != 'stripe_checkout/charge') {
+    libraries_load('stripe_php');
+    $block = array();
+    $block['content']['#attached']['css'][] = backdrop_get_path('module', 'stripe_checkout') . '/css/stripe_checkout.css';
+    $config = config('stripe_checkout.settings');
+    $image = $config->get('stripe_checkout-image');
+    $currency = $config->get('stripe_checkout-currency');
+    $outer_button = check_plain($config->get('stripe_checkout-outer-button'));
+    $inner_button = check_plain($config->get('stripe_checkout-inner-button'));
+    $enabled = $config->get('stripe_checkout-enabled');
+    $mode = $config->get('stripe_checkout-mode');
+    $livekey = $config->get('stripe_checkout-live-publishable-key');
+    $testkey = $config->get('stripe_checkout-test-publishable-key');
+    if ($mode == '1') {
+      $key = $livekey;
+      $mode_warn = "";
+    } else { 
+      $key = $testkey;
+      $mode_warn = "<div class='messages status'>Stripe Checkout is in test mode.</div>";
+    }
+    $name = check_plain($config->get('stripe_checkout-name'));
+    $description = check_plain($config->get('stripe_checkout-description'));
+    if (isset($_SESSION['stripe_checkout_amount_cents'])) {
+      $amount = $_SESSION['stripe_checkout_amount_cents'];
+    } else {
+      $amount = $config->get('stripe_checkout-amount');
+    }
+    $prefill_email = $config->get('stripe_checkout-prefill-email');
+    
+    //Defaults
+    if (!$amount) $amount = 2000;
+    if (!$name) $name = config_get('system.core', 'site_name');
+    if (!$description) $description = "Thank you for your support";
+    if ($image) {
+      $image_loaded = file_load($image);
+      $image_uri = $image_loaded->uri;
+      $image_url = file_create_url($image_uri);
+    } else {
+      $image_url = backdrop_get_logo();
+    }
+    ($prefill_email && $user->uid) ? $email = $user->mail : $email = "";
+    ($config->get('stripe_checkout-shipping-addr')) ? $shipping_addr = 'true' : $shipping_addr = 'false';
+    ($config->get('stripe_checkout-billing-addr')) ? $billing_addr = 'true' : $billing_addr = 'false';
+    ($config->get('stripe_checkout-zip')) ? $zip = 'true' : $zip = 'false';
+    
+    switch ($delta) {
+      case 'stripe_checkout_donate':
+        if ($enabled) {
+          $block['content'] = $mode_warn."<form action='/stripe_checkout/charge' method='POST'>
+                                <label for='data-amount'>Amount (".$currency.")</label>
+                                <input name='data-amount' type='text' id='data-amount' value='".($amount/100)."' list='suggested_amounts' />
+                                  <datalist id='suggested_amounts'>
+                                    <option>20</option>
+                                    <option>40</option>
+                                    <option>60</option>
+                                    <option>100</option>
+                                  </datalist>
+                                <script
+                                  src='https://checkout.stripe.com/checkout.js' class='stripe-button'
+                                  data-key='".$key."'
+                                  data-name='".$name."'
+                                  data-description='".$description."'
+                                  data-image='".$image_url."'
+                                  data-locale='auto'
+                                  data-zip-code='".$zip."'
+                                  data-billing-address='".$billing_addr."'
+                                  data-currency='".$currency."'
+                                  data-panel-label='".$inner_button."'
+                                  data-shipping-address='".$shipping_addr."'
+                                  data-email='".$email."'
+                                  data-label='".$outer_button."'
+                                  data-allow-remember-me='true'>
+                                </script>
+                              </form>";
+          $block['subject'] = t('Stripe Checkout Donate');
+        }
+        return $block;
+        break;
+      default:
+        return NULL;
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function stripe_checkout_menu() {
+  $items['admin/config/services/stripe-checkout'] = array(
+    'title' => 'Stripe Checkout Settings',
+    'description' => 'Settings of sticky navigation on your website',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('stripe_checkout_admin_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer stripe_checkout'),
+    'file' => 'stripe_checkout.admin.inc',
+  );
+  $items['stripe_checkout/charge'] = array(
+    'title' => 'Thank you for your support',
+    'description' => 'Please wait...',
+    'page callback' => 'stripe_checkout_charge',
+    'access callback' => 'user_access',
+    'access arguments' => array('view published content'),
+    'file' => 'stripe_checkout.charge.inc',
+  );
+  return $items;
+}
+
+/**
+  * Implements hook_config_info().
+  */
+function stripe_checkout_config_info() {
+  $prefixes['stripe_checkout.settings'] = array(
+    'label' => t('Stripe Checkout settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function stripe_checkout_libraries_info() {
+  $libraries['stripe_php'] = array(
+    'name' => 'Stripe PHP Bindings',
+    'vendor url' => 'https://github.com/stripe/stripe-php',
+    'download url' => 'https://github.com/stripe/stripe-php/archive/master.zip',
+    'version callback' => 'stripe_checkout_libraries_version_callback',
+    'files' => array(
+      'php' => array(
+        'init.php',
+      ),
+    ),
+  );
+
+  return $libraries;
+}
+
+function stripe_checkout_libraries_version_callback () {
+  $file = libraries_get_path('stripe_php').'/VERSION';
+  $f = fopen($file, 'r');
+  $line = fgets($f);
+  fclose($f);
+  return $line;
+}
