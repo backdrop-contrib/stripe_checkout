@@ -29,26 +29,23 @@ function stripe_checkout_block_info() {
 function stripe_checkout_block_view($delta = '', $settings = array(), $contexts = array()) {
   global $user;
   $config = config('stripe_checkout.settings');
+  $apiconfig = config('stripe_api.settings');
   $currpage = current_path();
-  
-  if (module_exists('libraries') && $config->get('stripe_checkout-enabled') && $currpage != 'stripe_checkout/charge') {
-    libraries_load('stripe_php');
+  $enabled = $config->get('stripe_checkout-donateblock-enabled');
+
+  if ($enabled && $currpage != 'stripe_checkout/charge') {
     $block = array();
     $block['content']['#attached']['css'][] = backdrop_get_path('module', 'stripe_checkout') . '/css/stripe_checkout.css';
-    $config = config('stripe_checkout.settings');
     $image = $config->get('stripe_checkout-image');
     $currency = $config->get('stripe_checkout-currency');
     $outer_button = check_plain($config->get('stripe_checkout-outer-button'));
     $inner_button = check_plain($config->get('stripe_checkout-inner-button'));
-    $enabled = $config->get('stripe_checkout-enabled');
-    $mode = $config->get('stripe_checkout-mode');
-    $livekey = $config->get('stripe_checkout-live-publishable-key');
-    $testkey = $config->get('stripe_checkout-test-publishable-key');
-    if ($mode == '1') {
-      $key = $livekey;
+    $mode = $apiconfig->get('stripe_api_mode');
+    if ($mode == 'live') {
+      $key = $apiconfig->get('stripe_api_test_secret_key');
       $mode_warn = "";
     } else { 
-      $key = $testkey;
+      $key = $apiconfig->get('stripe_api_test_public_key');
       $mode_warn = "<div class='messages status'>Stripe Checkout is in test mode.</div>";
     }
     $name = check_plain($config->get('stripe_checkout-name'));
@@ -119,9 +116,9 @@ function stripe_checkout_block_view($delta = '', $settings = array(), $contexts 
  * Implements hook_menu().
  */
 function stripe_checkout_menu() {
-  $items['admin/config/services/stripe-checkout'] = array(
-    'title' => 'Stripe Checkout Settings',
-    'description' => 'Settings of sticky navigation on your website',
+  $items['admin/config/services/stripe_api/checkout'] = array(
+    'title' => 'Checkout Settings',
+    'description' => 'Settings for Stripe Checkout functionality',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('stripe_checkout_admin_form'),
     'access callback' => 'user_access',
@@ -154,11 +151,14 @@ function stripe_checkout_config_info() {
  * Implements hook_libraries_info().
  */
 function stripe_checkout_libraries_info() {
-  $libraries['stripe_php'] = array(
+  $libraries['stripe-php'] = array(
     'name' => 'Stripe PHP Bindings',
-    'vendor url' => 'https://github.com/stripe/stripe-php',
-    'download url' => 'https://github.com/stripe/stripe-php/archive/master.zip',
-    'version callback' => 'stripe_checkout_libraries_version_callback',
+    'vendor url' => 'https://stripe.com',
+    'download url' => 'https://github.com/stripe/stripe-php',
+    'version arguments' => array(
+      'file' => 'VERSION',
+      'pattern' => '/(\d+\.\d+\.\d+)/',
+    ),
     'files' => array(
       'php' => array(
         'init.php',
@@ -169,10 +169,21 @@ function stripe_checkout_libraries_info() {
   return $libraries;
 }
 
-function stripe_checkout_libraries_version_callback () {
-  $file = libraries_get_path('stripe_php').'/VERSION';
-  $f = fopen($file, 'r');
-  $line = fgets($f);
-  fclose($f);
-  return $line;
+
+/**
+ * Load Stripe PHP Bindings. Based on code from the webform_stripe module.
+ */
+function stripe_checkout_load_library() {
+  $libraries = libraries_get_libraries();
+
+  // If library exists at 'stripe' and is defined by another module , use it 
+  //to avoid conflicts with loading multiple Stripe PHP libraries.
+  if (isset($libraries['stripe'])) {
+    $library = libraries_load('stripe');
+    if ($library['loaded']) {
+      return $library;
+    }
+  }
+
+  return libraries_load('stripe-php');
 }

@@ -27,9 +27,8 @@ Features may be expanded in the future.
 
 - Once the dependencies are in place, install this module using the [official 
   Backdrop CMS instructions](https://backdropcms.org/guide/modules).
-- Configure the module at *Configuration > Web Services > Stripe Checkout*
-  (`admin/config/services/stripe-checkout`), adding your Stripe API keys and 
-  setting preferences.
+- Configure the module at *Configuration > Web Services > Stripe >  
+  Checkout Settings* (`admin/config/services/stripe_api/checkout`).
 - Add the "Stripe Checkout Donation" block 
   [to a layout](https://backdropcms.org/guide/layouts) and adjust visibility 
   settings as needed.

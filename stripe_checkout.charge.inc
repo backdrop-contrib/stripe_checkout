@@ -13,20 +13,21 @@ function stripe_checkout_charge() {
     $amount = check_plain(($_POST['data-amount'])*100);
     $_SESSION['stripe_checkout_amount_cents'] = $amount;
     
-    $config = config('stripe_checkout.settings');
+    $config = config('stripe_api.settings');
+    $secretconfig = config('stripe_api_secret.settings');
     
-    if (module_exists('libraries') && ($stripe_php = libraries_load('stripe_php')) && !empty($stripe_php['loaded'])) {
-    } else {
+    if !($stripe_php = stripe_checkout_load_library() && !empty($stripe_php['loaded'])) {
+    {
       $stripe_php = NULL;
       backdrop_set_message(t('The Stripe Checkout settings are not correct and we are unable to charge the card. Please alert the system administrator.'),'error');
       return "<p>There was an error.</p>";
     }
    
-    $mode = $config->get('stripe_checkout-mode');
-    if ($mode) {
-      $key = $config->get('stripe_checkout-live-secret-key');
+    $mode = $config->get('stripe_api_mode');
+    if ($mode === 'live') {
+      $key = $secretconfig->get('stripe_api_live_secret_key');
     } else {
-      $key = $config->get('stripe_checkout-test-secret-key');
+      $key = $secretconfig->get('stripe_api_test_secret_key');
     }
   
     \Stripe\Stripe::setApiKey($key);
