@@ -13,40 +13,31 @@ function stripe_checkout_charge() {
     $amount = check_plain(($_POST['data-amount'])*100);
     $_SESSION['stripe_checkout_amount_cents'] = $amount;
     
-    $config = config('stripe_checkout.settings');
+    $apiconfig = config('stripe_api.settings');
+    $secretconfig = config('stripe_api_secret.settings');
+    $checkoutconfig = config('stripe_checkout.settings');
     
-    if (module_exists('libraries') && ($stripe_php = libraries_load('stripe_php')) && !empty($stripe_php['loaded'])) {
+    $mode = $apiconfig->get('stripe_api_mode');
+    if ($mode === 'live') {
+      $key = $secretconfig->get('stripe_api_live_secret_key');
     } else {
-      $stripe_php = NULL;
-      backdrop_set_message(t('The Stripe Checkout settings are not correct and we are unable to charge the card. Please alert the system administrator.'),'error');
-      return "<p>There was an error.</p>";
+      $key = $secretconfig->get('stripe_api_test_secret_key');
     }
-   
-    $mode = $config->get('stripe_checkout-mode');
-    if ($mode) {
-      $key = $config->get('stripe_checkout-live-secret-key');
-    } else {
-      $key = $config->get('stripe_checkout-test-secret-key');
-    }
-  
-    \Stripe\Stripe::setApiKey($key);
-    
-    // Create the charge on Stripe's servers - this will charge the user's card
-    try {
-      $charge = \Stripe\Charge::create(array(
+
+    $params = array(
         "amount" => $amount, 
-        "currency" => $config->get('stripe_checkout-currency'),
+        "currency" => $checkoutconfig->get('stripe_checkout-currency'),
         "source" => $token,
-        "description" => $config->get('stripe_checkout-description')
-        ));
-    } catch(\Stripe\Error\Card $e) {
-      // The card has been declined
-      backdrop_set_message(t("Your card has been declined."),'error');
-      backdrop_set_message($e,'error');
-    }
-    return "<p>We have attempted to charge your card. Thank you for your support!</p>";
+        "description" => $checkoutconfig->get('stripe_checkout-description'),
+        "metadata" => array('email' => $email),
+        );
+    $charge = stripe_api_call('charge', 'create', $params);
+
+    return "<p>".t('We have attempted to charge your card. Thank you for your support!')."</p>";
   } else {
-    return "<p>No donation information has been provided. Please try again.</p>";
+    
+    /* No token to work with */
+    return "<p>".t('No donation information has been provided. Please try again.')."</p>";
   }
 
 
