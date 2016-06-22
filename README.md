@@ -1,7 +1,3 @@
-#Please note: This module does not currently have an official release 
-I am restructuring a few things. Feel free to use it as is, recognizing that
-you may need to uninstall and reinstall to get the official version later.
-
 #Stripe Checkout
 
 This module enables the creation of a simple donation block
@@ -55,4 +51,4 @@ complete text.
 ##Credits
 
 - This module was created by [Laryn Kragt Bakker](https://github.com/laryn) - 
-[CEDC.org](https://cedc.org).
+  [CEDC.org](https://cedc.org).
