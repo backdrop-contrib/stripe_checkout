@@ -6,5 +6,4 @@ configure = admin/config/services/stripe_api/checkout
 
 stylesheets[all][] = css/stripe_checkout.css
 
-dependencies[] = libraries
 dependencies[] = stripe_api

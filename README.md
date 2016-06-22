@@ -19,9 +19,7 @@ Features may be expanded in the future.
 
 ##Dependencies
 
-- Currently requires the Libraries module
-- [Stripe's PHP bindings](https://github.com/stripe/stripe-php) should be 
-  copied into the `/libraries` directory in a folder named `stripe_php`.
+- [Stripe API](https://github.com/backdrop-contrib/stripe_api)
 
 ##Installation
 
