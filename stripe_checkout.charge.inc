@@ -17,18 +17,18 @@ function stripe_checkout_charge() {
     $secretconfig = config('stripe_api_secret.settings');
     $checkoutconfig = config('stripe_checkout.settings');
     
-    $mode = $apiconfig->get('stripe_api_mode');
+    $mode = $apiconfig->get('mode');
     if ($mode === 'live') {
-      $key = $secretconfig->get('stripe_api_live_secret_key');
+      $key = $secretconfig->get('live_secret_key');
     } else {
-      $key = $secretconfig->get('stripe_api_test_secret_key');
+      $key = $secretconfig->get('test_secret_key');
     }
 
     $params = array(
         "amount" => $amount, 
-        "currency" => $checkoutconfig->get('stripe_checkout-currency'),
+        "currency" => $checkoutconfig->get('currency'),
         "source" => $token,
-        "description" => $checkoutconfig->get('stripe_checkout-description'),
+        "description" => $checkoutconfig->get('description'),
         "metadata" => array('email' => $email),
         );
     $charge = stripe_api_call('charge', 'create', $params);

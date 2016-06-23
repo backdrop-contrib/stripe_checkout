@@ -3,7 +3,7 @@
   /**
    * Scrolls to top of Webform with Stripe payment.
    */
-  Drupal.ajax.prototype.commands.webformStripeScroll = function(ajax, response, status) {
+  Backdrop.ajax.prototype.commands.stripeCheckoutWebformScroll = function(ajax, response, status) {
     // Determine what to scroll to, either our wrapper div, or a block, or a
     // Panels pane.
     var $el = $(response.selector).closest('.block.block-webform');
@@ -27,14 +27,14 @@
   /**
    * Opens Stripe Checkout when Webform Stripe 'pay' button is clicked.
    */
-  Drupal.behaviors.webformStripe = {
+  Backdrop.behaviors.stripeCheckoutWebform = {
     attach: function(context, settings) {
-      $('.webform-stripe-pay', context).click(function() {
-        StripeCheckout.open($.extend(settings.webform_stripe, {
+      $('.stripe-checkout-webform-pay', context).click(function() {
+        StripeCheckout.open($.extend(settings.stripe_checkout_webform, {
           // Payment was successful.
           token: function(token) {
             // Set token and email in token field.
-            $('.webform-stripe-token', context).val(token.id + ':' + token.email);
+            $('.stripe-checkout-webform-token', context).val(token.id + ':' + token.email);
 
             // Submit form.
             $('.webform-submit', context).click();

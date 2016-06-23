@@ -1,0 +1,8 @@
+name = Stripe Checkout Webform
+description = Adds Stripe Checkout integration with Webforms.
+package = Webform
+backdrop = 1.x
+type = module
+dependencies[] = webform
+dependencies[] = stripe_api
+dependencies[] = stripe_checkout
