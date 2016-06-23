@@ -1,6 +1,8 @@
-name = Webform Stripe
-description = Adds Stripe integration with Webforms.
+name = Stripe Checkout Webform
+description = Adds Stripe Checkout integration with Webforms.
 package = Webform
-core = 7.x
-dependencies[] = libraries
+backdrop = 1.x
+type = module
 dependencies[] = webform
+dependencies[] = stripe_api
+dependencies[] = stripe_checkout
