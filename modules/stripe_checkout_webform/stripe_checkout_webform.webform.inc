@@ -4,6 +4,8 @@
  * Implements _webform_defaults_component().
  */
 function _webform_defaults_stripe_checkout_webform() {
+  $mode = config_get('stripe_api.settings','mode');
+  ($mode == 'live') ? $test_mode = FALSE : $test_mode = TRUE;
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -12,7 +14,7 @@ function _webform_defaults_stripe_checkout_webform() {
     'value' => '',
     'required' => 0,
     'extra' => array(
-      'test_mode' => FALSE,
+      'test_mode' => $test_mode,
       'amount_type' => 'value',
       'amount_value' => '',
       'amount_value_component' => '',
@@ -43,18 +45,19 @@ function _webform_defaults_stripe_checkout_webform() {
  */
 function _stripe_checkout_webform_get_plans($test_mode) {
   $plans = array();
-
+  ($test_mode) ? $mode = 'test' : $mode = 'live';
   // Load list of Stripe plans.
-  $stripeplans = stripe_api_call('plan','all',array('livemode' => !$test_mode));
-  try {
-    foreach ($stripeplans->data as $plan) {
-      $plans[$plan->id] = $plan->name;
+  $stripeplans = stripe_api_call('plan','all', NULL, $mode);
+  if ($stripeplans != NULL) {
+    try {
+      foreach ($stripeplans->data as $plan) {
+        
+        $plans[$plan->id] = $plan->name;
+      }
+    }
+    catch(\Stripe\Error\Base $e) {
     }
   }
-  catch(\Stripe\Error\Base $e) {
-  }
-  debug($test_mode);
-  
   return $plans;
 }
 
@@ -76,7 +79,8 @@ function _webform_edit_stripe_checkout_webform($component) {
   // Prevent multiple Stripe payment components per webform.
   if (empty($component['cid'])) {
     foreach ($node->webform['components'] as $other_component) {
-      if ($other_component['type'] === 'stripe_checkout') {
+      if ($other_component['type'] ===  'stripe_checkout_webform'
+        ) {
         backdrop_set_message(t('Only one Stripe payment component is allowed.'), 'error');
         backdrop_goto("node/$node->nid/webform/components");
       }
@@ -683,7 +687,7 @@ function _webform_render_stripe_checkout_webform($component, $value = NULL, $fil
     return array(
       '#type' => 'value',
       '#default_value' => $value,
-      '#stripe_webform' => FALSE,
+      '#stripe_checkout_webform' => FALSE,
     );
   }
 
@@ -697,7 +701,7 @@ function _webform_render_stripe_checkout_webform($component, $value = NULL, $fil
     '#attached' => array(
       'js' => array(
         'https://checkout.stripe.com/checkout.js' => array('type' => 'external'),
-        backdrop_get_path('module', 'stripe_checkout_webform') . '/stripe_checkout_webform.js',
+        backdrop_get_path('module', 'stripe_checkout_webform') . '/js/stripe_checkout_webform.js',
       ),
     ),
   );
@@ -710,7 +714,8 @@ function _webform_render_stripe_checkout_webform($component, $value = NULL, $fil
 function _stripe_checkout_webform_form_webform_client_form_alter(&$form, &$form_state) {
   // Look for a Stripe payment component on a form that has a Submit button.
   foreach ($form['#node']->webform['components'] as $cid => $component) {
-    if ($component['type'] === 'stripe_checkout' && isset($form['actions']['submit'])) {
+    if ($component['type'] ===  'stripe_checkout_webform'
+         && isset($form['actions']['submit'])) {
       // Store component for easy access in our submit callback.
       $form['#stripe_checkout_webform'] = $component;
 
@@ -785,7 +790,7 @@ function _stripe_checkout_webform_form_webform_client_form_alter(&$form, &$form_
         // Add our Pay button, which will trigger Stripe Checkout.
         $form['actions']['stripe_checkout_webform_pay'] = array(
           '#type' => 'button',
-          '#value' => !empty($component['extra']['pay_text']) ? $component['extra']['pay_text'] : stripe_checkout_webform_PAY_TEXT,
+          '#value' => !empty($component['extra']['pay_text']) ? $component['extra']['pay_text'] : STRIPE_CHECKOUT_WEBFORM_PAY_TEXT,
           '#attributes' => array('class' => array('stripe-checkout-webform-pay')),
           '#weight' => 15,
           '#attached' => array(

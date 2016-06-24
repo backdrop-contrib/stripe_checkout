@@ -11,7 +11,8 @@ define('STRIPE_CHECKOUT_WEBFORM_CANCEL_TEXT', t('< Return to form'));
  * Implements hook_webform_component_info().
  */
 function stripe_checkout_webform_webform_component_info() {
-  $components['stripe_checkout_webform'] = array(
+  $components[ 'stripe_checkout_webform'
+        ] = array(
     'label' => t('Stripe payment'),
     'description' => t('Displays a payment button which opens the Stripe Checkout form.'),
     'features' => array(
@@ -36,16 +37,23 @@ function stripe_checkout_webform_webform_component_info() {
 function stripe_checkout_webform_form_webform_component_edit_form_alter(&$form, &$form_state) {
   // Alter the Stripe payment component edit form, since Webform doesn't pass
   // the form state to _webform_edit_stripe_checkout_webform().
-  if ($form['type']['#value'] === 'stripe_checkout') {
+  
+  if (
+    $form['type']['#value'] ===  'stripe_checkout_webform'
+  ) {
     form_load_include($form_state, 'inc', 'stripe_checkout_webform', 'stripe_checkout_webform.webform');
     _webform_edit_stripe_checkout_webform_alter($form, $form_state);
   }
 
   // When editing a Select component that's being used as the dynamic amount or
   // description component, show a reminder message.
-  if ($form['type']['#value'] === 'select' && !empty($form_state['build_info']['args'][1]['cid'])) {
+  if (
+    $form['type']['#value'] === 'select' && !empty($form_state['build_info']['args'][1]['cid'])
+  ) {
     foreach ($form['#node']->webform['components'] as $cid => $component) {
-      if ($component['type'] === 'stripe_checkout') {
+      if (
+        $component['type'] ===  'stripe_checkout_webform'
+      ) {
         foreach (array('amount', 'description') as $setting) {
           foreach (array('value', 'plan') as $type) {
             if (
@@ -53,7 +61,7 @@ function stripe_checkout_webform_form_webform_component_edit_form_alter(&$form, 
               && isset($component['extra']["{$setting}_{$type}_component"])
               && $component['extra']["{$setting}_{$type}_component"] === $form_state['build_info']['args'][1]['cid']
             ) {
-              drupal_set_message(t('The Stripe payment component is using this field to populate the %setting. If you add options to this field, be sure to also update the Stripe payment options.', array(
+              backdrop_set_message(t('The Stripe payment component is using this field to populate the %setting. If you add options to this field, be sure to also update the Stripe payment options.', array(
                 '%setting' => $setting,
               )), 'warning');
             }
@@ -79,7 +87,8 @@ function stripe_checkout_webform_form_webform_configure_form_alter(&$form, &$for
   // If form has Stripe payment component, disable the Submit button label
   // field and let the user know why.
   foreach ($form['#node']->webform['components'] as $component) {
-    if ($component['type'] === 'stripe_checkout') {
+    if ($component['type'] ===  'stripe_checkout_webform'
+        ) {
       $form['advanced']['submit_text']['#disabled'] = TRUE;
       $form['advanced']['submit_text']['#description'] = t('This form has a Stripe payment component, which changes the way the Submit button works, so this field has no effect and has been disabled.');
     }
@@ -93,7 +102,7 @@ function stripe_checkout_webform_form_webform_configure_form_alter(&$form, &$for
 function stripe_checkout_webform_checkout_settings() {
   // Merge variable settings with default settings.
   $config = ('stripe_checkout');
-  return array(
+  $settings = array(
     'name' => (null !== ($config->get('name'))) ? $config->get('name') : config_get('system.core', 'site_name'),
     'image' => (null !== ($config->get('image'))) ? $config->get('image') : '',
     'currency' => (null !== ($config->get('currency'))) ? $config->get('currency') : 'USD',
@@ -106,4 +115,5 @@ function stripe_checkout_webform_checkout_settings() {
     'alipay' => (null !== ($config->get('alipay'))) ? $config->get('alipay') : FALSE,
     'alipay-reusable' => (null !== ($config->get('alipay-reusable'))) ? $config->get('alipay-reusable') : FALSE,
   );
+  return $settings;
 }
