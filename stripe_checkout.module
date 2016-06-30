@@ -40,12 +40,12 @@ function stripe_checkout_block_view($delta = '', $settings = array(), $contexts 
     $currency = $config->get('stripe_checkout-currency');
     $outer_button = check_plain($config->get('stripe_checkout-outer-button'));
     $inner_button = check_plain($config->get('stripe_checkout-inner-button'));
-    $mode = $apiconfig->get('stripe_api_mode');
+    $mode = $apiconfig->get('mode');
     if ($mode == 'live') {
-      $key = $apiconfig->get('stripe_api_test_secret_key');
+      $key = $apiconfig->get('test_secret_key');
       $mode_warn = "";
     } else { 
-      $key = $apiconfig->get('stripe_api_test_public_key');
+      $key = $apiconfig->get('test_public_key');
       $mode_warn = "<div class='messages status'>Stripe Checkout is in test mode.</div>";
     }
     $name = check_plain($config->get('stripe_checkout-name'));

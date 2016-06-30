@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function stripe_checkout_webform_uninstall() {
+
+  // Delete Stripe Payment components and their data from webforms.
+  $cids = db_query("SELECT cid FROM {webform_component} WHERE type = 'stripe_checkout'")->fetchCol();
+  if (!empty($cids)) {
+    db_query("DELETE FROM {webform_component} WHERE type = 'stripe_checkout'");
+    db_query("DELETE FROM {webform_submitted_data} WHERE cid IN (:cid)", array(':cid' => $cids));
+  }
+}
