@@ -67,6 +67,7 @@ complete text.
 
 - This module was created by [Laryn Kragt Bakker](https://github.com/laryn) - 
   [CEDC.org](https://cedc.org).
-- The submodule has been included based on the `webform_stripe` Drupal module
-  which was created by [Joel Stein](https://github.com/joelstein) and 
+- The `stripe_checkout_webform` submodule has been included based on the 
+  `webform_stripe` Drupal module   which was created by 
+  [Joel Stein](https://github.com/joelstein) and 
   [On Fire Media](http://onfiremedia.com/).
