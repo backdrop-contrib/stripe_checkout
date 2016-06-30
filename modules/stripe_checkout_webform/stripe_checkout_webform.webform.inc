@@ -4,8 +4,8 @@
  * Implements _webform_defaults_component().
  */
 function _webform_defaults_stripe_checkout_webform() {
-  $mode = config_get('stripe_api.settings','mode');
-  ($mode == 'live') ? $test_mode = FALSE : $test_mode = TRUE;
+  $defaultmode = config_get('stripe_api.settings','mode');
+  ($defaultmode == 'live') ? $test_mode = FALSE : $test_mode = TRUE;
   return array(
     'name' => '',
     'form_key' => NULL,
@@ -90,10 +90,10 @@ function _webform_edit_stripe_checkout_webform($component) {
   // Test mode.
   $form['test_mode'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Test mode'),
-    '#description' => t('When enabled, the test API keys are used and the payment will not actually be charged. You can use <a href="!url">these test credit cards</a>.', array(
-      '!url' => url('https://stripe.com/docs/testing#cards'),
-    )),
+    '#title' => t('Force test mode'),
+    '#description' => t('When enabled, this setting overrides the default Stripe API mode setting, forcing the test API keys to be used on this form. The payment will not actually be charged. You can use <a href="!url">these test credit cards</a>. NOTE: If this box is unchecked, the default Stripe mode will be used (currently: <strong style="background-color: #efefef;">!mode mode</strong>). You can <a href="!url2">change that setting here</a>.', array(
+      '!url' => url('https://stripe.com/docs/testing#cards'), '!url2' => url('admin/config/services/stripe_api/settings'), '!mode' => $config->get('mode'),
+     )),
     '#default_value' => $component['extra']['test_mode'],
     '#parents' => array('extra', 'test_mode'),
   );
@@ -454,6 +454,8 @@ function _webform_edit_stripe_checkout_webform($component) {
  */
 function _webform_edit_stripe_checkout_webform_alter(&$form, &$form_state) {
   $component = $form_state['build_info']['args'][1];
+  $config = config('stripe_api.settings');
+  ($config->get('mode') == 'live') ? $default_mode_test = 0 : $default_mode_test = 1;
 
   // Add ajax handler to amount component field.
   $form['amount']['amount_value_component']['#ajax'] = array(
@@ -490,7 +492,7 @@ function _webform_edit_stripe_checkout_webform_alter(&$form, &$form_state) {
 
   // Determine if using test mode, and craft a message with an appropriate
   // link to the Stripe dashboard.
-  $test_mode = isset($form_state['values']['extra']['test_mode']) ? $form_state['values']['extra']['test_mode'] : $component['extra']['test_mode'];
+  $test_mode = isset($form_state['values']['extra']['test_mode']) ? $form_state['values']['extra']['test_mode'] : $default_mode_test;
   $plan_message = t('You can <a href="!url">manage your !option subscription plans here</a>.', array(
     '!option' => $test_mode ? t('test') : t('live'),
     '!url' => $test_mode ? 'https://dashboard.stripe.com/test/plans' : 'https://dashboard.stripe.com/plans',
@@ -826,7 +828,7 @@ function _stripe_checkout_webform_form_webform_client_form_ajax_callback($form, 
       ajax_command_insert(NULL, backdrop_render($form)),
       ajax_command_prepend(NULL, theme('status_messages')),
       array(
-        'command' => 'webformStripeScroll',
+        'command' => 'stripeCheckoutWebformScroll',
         'selector' => '#' . $form['#stripe_checkout_webform_html_id'],
         'duration' => 500,
       ),
@@ -840,13 +842,24 @@ function _stripe_checkout_webform_form_webform_client_form_ajax_callback($form, 
 function _stripe_checkout_webform_process_checkout_settings($component, $data) {
   // Load node.
   $node = node_load($component['nid']);
-  $config = config('stripe_api');
+  $config = config('stripe_api.settings');
 
-  // Merge component settings, publishable key, and default settings.
+  $checkoutconfig = config('stripe_checkout.settings');
   $settings = array(
+    'name' => (null !== ($checkoutconfig->get('stripe_checkout-name'))) ? $checkoutconfig->get('stripe_checkout-name') : config_get('system.core', 'site_name'),
+    'image' => (null !== ($checkoutconfig->get('stripe_checkout-image'))) ? $checkoutconfig->get('stripe_checkout-image') : '',
+    'currency' => (null !== ($checkoutconfig->get('stripe_checkout-currency'))) ? $checkoutconfig->get('stripe_checkout-currency') : 'USD',
+    'locale' => (null !== ($checkoutconfig->get('stripe_checkout-locale'))) ? $checkoutconfig->get('stripe_checkout-locale') : 'auto',
+    'zip-code' => (null !== ($checkoutconfig->get('stripe_checkout-zip'))) ? $checkoutconfig->get('stripe_checkout-zip') : TRUE,
+    'billing-address' => (null !== ($checkoutconfig->get('stripe_checkout-billing-addr'))) ? $checkoutconfig->get('stripe_checkout-billing-addr') : FALSE,
+    'shipping-address' => (null !== ($checkoutconfig->get('stripe_checkout-shipping-addr'))) ? $checkoutconfig->get('stripe_checkout-shipping-addr') : FALSE,
+    'allow-remember-me' => (null !== ($checkoutconfig->get('stripe_checkout-allow-remember-me'))) ? $checkoutconfig->get('stripe_checkout-allow-remember-me') : FALSE,
+    'bitcoin' => (null !== ($checkoutconfig->get('stripe_checkout-bitcoin'))) ? $checkoutconfig->get('stripe_checkout-bitcoin') : FALSE,
+    'alipay' => (null !== ($checkoutconfig->get('stripe_checkout-alipay'))) ? $checkoutconfig->get('stripe_checkout-alipay') : FALSE,
+    'alipay-reusable' => (null !== ($checkoutconfig->get('stripe_checkout-alipay-reusable'))) ? $checkoutconfig->get('stripe_checkout-alipay-reusable') : FALSE,
     'panel-label' => $component['extra']['panel_label'],
-    'key' => $component['extra']['test_mode'] ? $config->get('test_public_key') : $config->get('live_public_key'),
-  ) + stripe_checkout_webform_checkout_settings();
+    'key' => ($component['extra']['test_mode']) ? $config->get('test_public_key') : $config->get('live_public_key'),
+  );
 
   // Determine amount or plan.
   switch ($component['extra']['amount_type']) {

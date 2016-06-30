@@ -94,26 +94,3 @@ function stripe_checkout_webform_form_webform_configure_form_alter(&$form, &$for
     }
   }
 }
-
-
-/**
- * Returns Stripe Checkout settings.
- */
-function stripe_checkout_webform_checkout_settings() {
-  // Merge variable settings with default settings.
-  $config = ('stripe_checkout');
-  $settings = array(
-    'name' => (null !== ($config->get('name'))) ? $config->get('name') : config_get('system.core', 'site_name'),
-    'image' => (null !== ($config->get('image'))) ? $config->get('image') : '',
-    'currency' => (null !== ($config->get('currency'))) ? $config->get('currency') : 'USD',
-    'locale' => (null !== ($config->get('locale'))) ? $config->get('locale') : 'auto',
-    'zip-code' => (null !== ($config->get('zip'))) ? $config->get('zip') : TRUE,
-    'billing-address' => (null !== ($config->get('billing-addr'))) ? $config->get('billing-addr') : FALSE,
-    'shipping-address' => (null !== ($config->get('shipping-addr'))) ? $config->get('shipping-addr') : FALSE,
-    'allow-remember-me' => (null !== ($config->get('allow-remember-me'))) ? $config->get('allow-remember-me') : FALSE,
-    'bitcoin' => (null !== ($config->get('bitcoin'))) ? $config->get('bitcoin') : FALSE,
-    'alipay' => (null !== ($config->get('alipay'))) ? $config->get('alipay') : FALSE,
-    'alipay-reusable' => (null !== ($config->get('alipay-reusable'))) ? $config->get('alipay-reusable') : FALSE,
-  );
-  return $settings;
-}
