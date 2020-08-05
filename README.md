@@ -1,4 +1,8 @@
-#Stripe Checkout
+# Stripe Checkout
+
+**This module is no longer maintained. Stripe development is now centering around
+the [Stripe](https://github.com/backdrop-contrib/stripe) module, including the 
+bundled `webform_stripe` functionality.**
 
 This module enables the creation of a simple donation block
 which you can place in layouts on your Backdrop site. It is a very simple
@@ -15,7 +19,7 @@ serve the page containing the payment form over HTTPS as well. In short, the
 address of the page containing Checkout must start with https:// rather than 
 just http://.")
 
-##Features
+## Features
 
 1. *Basic Stripe Checkout donation block*: The main stripe_checkout module
   allows you to activate a simple donation block using Stripe Checkout.
@@ -28,13 +32,13 @@ just http://.")
   dynamically from another field component on the form. You can also select
   "Plans" (subscriptions) from your Stripe account to allow recurring payments.
 
-##Dependencies
+## Dependencies
 
 - [Stripe API](https://github.com/backdrop-contrib/stripe_api)
 - [Webform](https://backdropcms.org/project/webform) 
   *for `stripe_checkout_webform` submodule only.*
 
-##Installation
+## Installation
 
 - Once the dependencies are in place, install this module using the [official 
   Backdrop CMS instructions](https://backdropcms.org/guide/modules).
@@ -48,22 +52,21 @@ just http://.")
 
 ![Stripe Checkout](https://github.com/backdrop-contrib/stripe_checkout/blob/1.x-1.x/images/stripe_checkout-screenshot.jpg "Stripe Checkout screenshot")
 
-##Issues
+## Issues
 
 Bugs and Feature requests should be reported in this module's 
 [Issue Queue](https://github.com/backdrop-contrib/stripe_checkout/issues).
 
-##License
+## License
 
 This project is GPL v2 software. See the LICENSE.txt file in this directory for
 complete text.
 
-##Current Maintainers
+## Current Maintainers
 
-- [Laryn Kragt Bakker](https://github.com/laryn) - [CEDC.org](https://cedc.org)
-- Co-maintainers would be welcome!
+- Unmaintained
 
-##Credits
+## Credits
 
 - This module was created by [Laryn Kragt Bakker](https://github.com/laryn) - 
   [CEDC.org](https://cedc.org).
